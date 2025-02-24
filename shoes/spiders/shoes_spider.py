@@ -3,6 +3,11 @@ import scrapy
 import re
 import logging
 from ..items import ProductItem
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
 logging.basicConfig(
     filename='spider.log',
@@ -11,19 +16,24 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-
 class AcademySpider(scrapy.Spider):
     name = "academy"
     start_urls = ["https://www.academy.com/p/nike-womens-court-legacy-next-nature-shoes"]
 
     def start_requests(self):
-        """Use SeleniumRequest to render JavaScript."""
-        yield SeleniumRequest(url=self.start_urls[0], callback=self.parse)
+        """Use SeleniumRequest to render JavaScript and handle CAPTCHA."""
+        yield SeleniumRequest(url=self.start_urls[0], callback=self.parse, meta={'handle_captcha': True})
 
     def parse(self, response):
         """Main parsing function for extracting product data."""
         if not self._handle_request_errors(response):
             return
+
+        driver = response.meta.get('driver')
+
+        if response.meta.get('handle_captcha') and driver:
+            self.press_captcha_button(driver)
+            time.sleep(5)  # Give time for the page to reload
 
         script_data = response.css('script').extract()
         if not script_data:
@@ -33,6 +43,20 @@ class AcademySpider(scrapy.Spider):
 
         str_json = ",".join([str(el) for el in script_data])
         yield self._extract_product_data(str_json)
+
+    def press_captcha_button(self, driver):
+        """Handles CAPTCHA by pressing the button."""
+        try:
+            wait = WebDriverWait(driver, 15)
+            captcha_button = wait.until(EC.presence_of_element_located((By.ID, "px-captcha")))
+            actions = ActionChains(driver)
+            actions.click_and_hold(captcha_button).perform()
+            time.sleep(15)
+            actions.release().perform()
+            self.logger.info("✅ CAPTCHA button pressed successfully.")
+            driver.refresh()
+        except Exception as e:
+            self.logger.error(f"Error handling CAPTCHA: {e}")
 
     def _handle_request_errors(self, response):
         """Retry mechanism for handling failed requests."""
