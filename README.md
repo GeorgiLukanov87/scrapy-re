@@ -7,7 +7,8 @@ This is a web scraping project built with Scrapy and Selenium to extract product
 - Uses Selenium to handle JavaScript-rendered pages.
 - Implements retry mechanisms and proxy rotation.
 - Saves extracted data as structured `ProductItem` objects.
-
+- Logging
+  
 ## Installation
 
 1. Clone the repository:
@@ -33,6 +34,17 @@ Run the spider using and save the data in json format:
 ```sh
 scrapy crawl academy -o products.jsonl
 ```
+The output json example:
+
+	{
+	"name": String,
+	"price": Double,
+	"colour": String,
+	    “availableColours”: Array,
+	"reviews_count": Int,
+	"reviews_score": Double,  
+    }
+
 
 ## Project Structure
 ```
