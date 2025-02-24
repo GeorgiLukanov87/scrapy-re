@@ -10,7 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 # from selenium_stealth import stealth
 
 URL = "https://www.academy.com/p/nike-womens-court-legacy-next-nature-shoes"
-CHROME_DRIVER_PATH = "chromedriver-win64/chromedriver.exe"
+CHROME_DRIVER_PATH = "../chromedriver.exe"
 MAX_RETRIES = 5
 
 
